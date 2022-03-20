@@ -28,7 +28,7 @@ import (
 
 const (
 	__GMDB_VERSION = "v0.1"
-	__GMDB_LICENSE = "GPL-3.0"
+	__GMDB_LICENSE = "MIT"
 )
 
 // GoMemoryDatabase structure.
