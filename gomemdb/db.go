@@ -28,7 +28,7 @@ import (
 )
 
 const (
-	__GMDB_VERSION = "v0.2"
+	__GMDB_VERSION = "v0.2.0"
 	__GMDB_LICENSE = "MIT"
 )
 
