@@ -22,12 +22,13 @@ package gomemdb
 import (
 	"compress/zlib"
 	"encoding/gob"
+	"fmt"
 	"io"
 	"os"
 )
 
 const (
-	__GMDB_VERSION = "v0.1"
+	__GMDB_VERSION = "v0.2"
 	__GMDB_LICENSE = "MIT"
 )
 
@@ -43,8 +44,14 @@ type GoMemDb struct {
 }
 
 // adds to keypairs new value
-func (gmdb *GoMemDb) Add(key string, pair interface{}) {
+func (gmdb *GoMemDb) Add(key string, pair interface{}) error {
+	if gmdb.keyExists(key) != -1 {
+		return fmt.Errorf("You can't add this value because it's key already exists")
+	}
+
 	gmdb.KeyPairs = append(gmdb.KeyPairs, NewKP(key, pair))
+
+	return nil
 }
 
 // sets Compress to true
@@ -153,10 +160,14 @@ func (gmdb *GoMemDb) Get(key string) interface{} {
 }
 
 // sets new value for key
-func (gmdb *GoMemDb) Set(key string, value interface{}) {
+func (gmdb *GoMemDb) Set(key string, value interface{}) error {
 	if idx := gmdb.keyExists(key); idx != -1 {
 		gmdb.KeyPairs[idx].Pair = value
+
+		return nil
 	}
+
+	return fmt.Errorf("Key-Value pair with given key does not exists")
 }
 
 // checks if key exists and returns it
@@ -171,21 +182,43 @@ func (gmdb *GoMemDb) keyExists(key string) int {
 }
 
 // deletes key pair
-func (gmdb *GoMemDb) Delete(key string) {
+func (gmdb *GoMemDb) Delete(key string) error {
 	if idx := gmdb.keyExists(key); idx != 1 {
 		gmdb.KeyPairs = append(gmdb.KeyPairs[:idx], gmdb.KeyPairs[:idx+1]...)
+
+		return nil
 	}
+
+	return fmt.Errorf("You can't delete key-value pair that does not exists")
 }
 
 // returns map representation of all keypairs
 func (gmdb *GoMemDb) Representate() map[string]interface{} {
-	var repr map[string]interface{}
+	var repr map[string]interface{} = map[string]interface{}{}
 
 	for _, kp := range gmdb.KeyPairs {
 		repr[kp.Key] = kp.Pair
 	}
 
 	return repr
+}
+
+// clears keypair slice
+func (gmdb *GoMemDb) Clear() {
+	gmdb.KeyPairs = []KeyPair{}
+}
+
+// returns map with keys and values based on given datatype
+func (gmdb *GoMemDb) GroupByPairDatatype(datatype interface{}) map[string]interface{} {
+	data := map[string]interface{}{}
+
+	for _, kp := range gmdb.KeyPairs {
+		if fmt.Sprintf("%T", kp.Pair) == fmt.Sprintf("%T", datatype) {
+			data[kp.Key] = kp.Pair
+		}
+	}
+
+	return data
 }
 
 // creates database instance
